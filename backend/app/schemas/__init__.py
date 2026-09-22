@@ -1,0 +1,1 @@
+from app.schemas.hospital import HospitalResponse

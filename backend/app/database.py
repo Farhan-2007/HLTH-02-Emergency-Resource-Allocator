@@ -18,5 +18,10 @@ SessionLocal = sessionmaker(
 
 Base = declarative_base()
 
-with engine.connect() as connection:
-    print("Database connected successfully!")
+def get_db():
+    db = SessionLocal()
+
+    try:
+        yield db
+    finally:
+        db.close()
