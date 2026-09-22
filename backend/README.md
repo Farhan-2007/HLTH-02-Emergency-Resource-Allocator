@@ -98,3 +98,16 @@ Example case created:
   ],
   "severity": "high"
 }
+
+### Day 3 — Backend: Hospital Ranking Engine
+
+* Implemented Haversine distance calculation between incident location and hospitals.
+* Added simulated travel-time calculation using a fixed average speed.
+* Implemented required-resource validation to check hospital availability.
+* Added hospital filtering based on requested facilities.
+* Implemented hospital ranking based on estimated travel time.
+* Added explainable ranking reasons showing available resources and estimated travel time.
+* Exposed the ranking engine through the `POST /rank` FastAPI endpoint.
+* Connected the ranking logic with PostgreSQL hospital data.
+* Tested the `/rank` endpoint using real database records and multiple facility combinations.
+* Verified that hospitals without the required available resources are excluded from the results.
