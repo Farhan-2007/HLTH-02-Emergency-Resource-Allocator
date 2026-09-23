@@ -1,15 +1,36 @@
 import { useState } from "react";
+import { rankHospitals } from "../services/api";
 
-function EmergencyForm() {
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+function EmergencyForm({ onResults, onLoading }) {
+  const [latitude, setLatitude] = useState("19.0760");
+  const [longitude, setLongitude] = useState("72.8777");
   const [severity, setSeverity] = useState("high");
   const [facility, setFacility] = useState("ICU");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    alert("Emergency details entered successfully.");
+    setError("");
+    onLoading(true);
+
+    try {
+      const data = {
+        incident_latitude: Number(latitude),
+        incident_longitude: Number(longitude),
+        required_facilities: [facility],
+      };
+
+      const results = await rankHospitals(data);
+
+      onResults(results);
+    } catch (err) {
+      console.error(err);
+      setError("Could not connect to the backend.");
+      onResults([]);
+    } finally {
+      onLoading(false);
+    }
   };
 
   return (
@@ -19,7 +40,6 @@ function EmergencyForm() {
         <input
           type="number"
           step="any"
-          placeholder="19.0760"
           value={latitude}
           onChange={(e) => setLatitude(e.target.value)}
           required
@@ -31,7 +51,6 @@ function EmergencyForm() {
         <input
           type="number"
           step="any"
-          placeholder="72.8777"
           value={longitude}
           onChange={(e) => setLongitude(e.target.value)}
           required
@@ -40,7 +59,6 @@ function EmergencyForm() {
 
       <div className="form-group">
         <label>Severity</label>
-
         <select
           value={severity}
           onChange={(e) => setSeverity(e.target.value)}
@@ -54,7 +72,6 @@ function EmergencyForm() {
 
       <div className="form-group">
         <label>Required Facility</label>
-
         <select
           value={facility}
           onChange={(e) => setFacility(e.target.value)}
@@ -66,8 +83,10 @@ function EmergencyForm() {
         </select>
       </div>
 
+      {error && <div className="error-message">{error}</div>}
+
       <button className="primary-button" type="submit">
-        Create Emergency
+        Find Hospitals
       </button>
     </form>
   );

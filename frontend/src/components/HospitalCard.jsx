@@ -1,38 +1,49 @@
-function HospitalCard({ hospital }) {
+function HospitalCard({ hospital, rank }) {
   return (
     <div className="hospital-card">
+
       <div className="hospital-card-top">
         <div>
-          <h3>{hospital.name}</h3>
-          <p>{hospital.location}</p>
+          <span className="hospital-rank">
+            #{rank}
+          </span>
+
+          <h3>{hospital.hospital_name}</h3>
+
+          <p>Recommended hospital</p>
         </div>
 
         <span className="availability-badge">
-          Available
+          Resource Available
         </span>
       </div>
 
       <div className="hospital-details">
+
         <div>
-          <span>ICU</span>
-          <strong>{hospital.icu}</strong>
+          <span>Distance</span>
+          <strong>
+            {hospital.distance_km.toFixed(2)} km
+          </strong>
         </div>
 
         <div>
-          <span>Trauma</span>
-          <strong>{hospital.trauma}</strong>
+          <span>Travel Time</span>
+          <strong>
+            {hospital.estimated_travel_time_minutes.toFixed(1)} min
+          </strong>
         </div>
 
-        <div>
-          <span>Ventilator</span>
-          <strong>{hospital.ventilator}</strong>
-        </div>
       </div>
 
-      <div className="hospital-footer">
-        <span>Travel time</span>
-        <strong>{hospital.travelTime}</strong>
+      <div className="ranking-reason">
+        <span>Why recommended?</span>
+
+        <p>
+          {hospital.reason}
+        </p>
       </div>
+
     </div>
   );
 }
