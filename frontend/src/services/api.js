@@ -19,3 +19,55 @@ export async function rankHospitals(data) {
 
   return response.json();
 }
+
+export const getHospitalRequests = async (hospitalId) => {
+  const response = await fetch(
+    `${API_BASE_URL}/requests/hospital/${hospitalId}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch hospital requests");
+  }
+
+  return response.json();
+};
+
+export const acceptRequest = async (requestId) => {
+  const response = await fetch(
+    `${API_BASE_URL}/requests/${requestId}/accept`,
+    {
+      method: "POST",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to accept request");
+  }
+
+  return response.json();
+};
+
+export const rejectRequest = async (requestId) => {
+  const response = await fetch(
+    `${API_BASE_URL}/requests/${requestId}/reject`,
+    {
+      method: "POST",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to reject request");
+  }
+
+  return response.json();
+};
+
+export const getHospitals = async () => {
+  const response = await fetch(`${API_BASE_URL}/hospitals`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch hospitals");
+  }
+
+  return response.json();
+};
