@@ -424,8 +424,8 @@ select {
 }
 
 .request-status {
-  margin-top: 16px;
-  padding: 11px;
+  margin-top: 14px;
+  padding: 10px 12px;
   border-radius: 8px;
   background: #fff8e8;
   color: #946c13;
@@ -531,4 +531,105 @@ select {
 
 .case-status-card strong {
   font-size: 14px;
+}
+
+/* =========================
+   Hospital Request Card
+   ========================= */
+
+.request-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.request-actions button {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.request-actions button:first-child {
+  background: #172033;
+  color: white;
+}
+
+.request-actions button:first-child:hover {
+  opacity: 0.9;
+}
+
+.request-actions button:last-child {
+  background: #fff1f1;
+  color: #c43d3d;
+  border: 1px solid #f0cccc;
+}
+
+.request-actions button:last-child:hover {
+  background: #ffe4e4;
+}
+
+.request-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.request-message {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f1f8f4;
+  color: #168653;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.request-empty-state {
+  min-height: 220px;
+  border: 1px dashed #d9dee7;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.request-empty-state .empty-icon {
+  background: #eaf8f1;
+  color: #168653;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* =========================
+   RESOURCE STATUS CARDS
+   ========================= */
+
+.resource-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease,
+              box-shadow 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.resource-card:hover {
+  transform: translateY(-2px);
+  border-color: #d4dbe5;
+  box-shadow: 0 6px 18px rgba(25, 35, 55, 0.06);
+}
+
+.resource-card span {
+  font-weight: 700;
+  color: #687386;
+}
+
+.resource-card strong {
+  letter-spacing: -0.5px;
+}
+
+.resource-card small {
+  font-size: 11px;
 }

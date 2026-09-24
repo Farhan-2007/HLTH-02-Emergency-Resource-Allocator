@@ -6,26 +6,30 @@ import {
   getCase,
 } from "../services/api";
 
-function DispatcherDashboard() {
-  const [hospitals, setHospitals] = useState([]);
+function DispatcherDashboard({
+  dispatcherState,
+  setDispatcherState,
+}) {
+  const {
+    hospitals,
+    currentCase,
+    facility,
+    requestSent,
+    selectedHospital,
+    caseStatus,
+  } = dispatcherState;
+
   const [loading, setLoading] = useState(false);
 
-  const [currentCase, setCurrentCase] = useState(null);
-  const [facility, setFacility] = useState("");
-
-  const [requestSent, setRequestSent] = useState(false);
-  const [selectedHospital, setSelectedHospital] = useState(null);
-
-  const [caseStatus, setCaseStatus] = useState("");
-
   const handleEmergencyCreated = (data) => {
-    setCurrentCase(data.case);
-    setHospitals(data.hospitals);
-    setFacility(data.facility);
-
-    setRequestSent(false);
-    setSelectedHospital(null);
-    setCaseStatus(data.case.status);
+    setDispatcherState({
+      hospitals: data.hospitals,
+      currentCase: data.case,
+      facility: data.facility,
+      requestSent: false,
+      selectedHospital: null,
+      caseStatus: data.case.status,
+    });
   };
 
   const handleSendRequest = async (hospital) => {
@@ -43,10 +47,12 @@ function DispatcherDashboard() {
         resource_type: facility,
       });
 
-      setSelectedHospital(hospital);
-      setRequestSent(true);
-
-      setCaseStatus("requested");
+      setDispatcherState((prev) => ({
+        ...prev,
+        selectedHospital: hospital,
+        requestSent: true,
+        caseStatus: "requested",
+      }));
 
       console.log("Request created:", request);
     } catch (error) {
@@ -66,15 +72,18 @@ function DispatcherDashboard() {
       try {
         const updatedCase = await getCase(currentCase.id);
 
-        setCaseStatus(updatedCase.status);
-        setCurrentCase(updatedCase);
+        setDispatcherState((prev) => ({
+          ...prev,
+          currentCase: updatedCase,
+          caseStatus: updatedCase.status,
+        }));
       } catch (error) {
         console.error("Failed to update case:", error);
       }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [currentCase?.id, requestSent]);
+  }, [currentCase?.id, requestSent, setDispatcherState]);
 
   return (
     <div className="dashboard">
