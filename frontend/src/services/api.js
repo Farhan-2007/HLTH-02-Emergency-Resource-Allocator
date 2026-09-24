@@ -1,8 +1,6 @@
 const API_BASE_URL = "http://127.0.0.1:8000";
 
 export async function rankHospitals(data) {
-  console.log("Sending to backend:", data);
-
   const response = await fetch(`${API_BASE_URL}/rank`, {
     method: "POST",
     headers: {
@@ -11,8 +9,6 @@ export async function rankHospitals(data) {
     body: JSON.stringify(data),
   });
 
-  console.log("Backend response:", response.status);
-
   if (!response.ok) {
     throw new Error(`Backend returned ${response.status}`);
   }
@@ -20,7 +16,51 @@ export async function rankHospitals(data) {
   return response.json();
 }
 
-export const getHospitalRequests = async (hospitalId) => {
+export async function createCase(data) {
+  const response = await fetch(`${API_BASE_URL}/cases`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create case: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getCase(caseId) {
+  const response = await fetch(
+    `${API_BASE_URL}/cases/${caseId}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to get case: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function createRequest(data) {
+  const response = await fetch(`${API_BASE_URL}/requests`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create request: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getHospitalRequests(hospitalId) {
   const response = await fetch(
     `${API_BASE_URL}/requests/hospital/${hospitalId}`
   );
@@ -30,9 +70,9 @@ export const getHospitalRequests = async (hospitalId) => {
   }
 
   return response.json();
-};
+}
 
-export const acceptRequest = async (requestId) => {
+export async function acceptRequest(requestId) {
   const response = await fetch(
     `${API_BASE_URL}/requests/${requestId}/accept`,
     {
@@ -45,9 +85,9 @@ export const acceptRequest = async (requestId) => {
   }
 
   return response.json();
-};
+}
 
-export const rejectRequest = async (requestId) => {
+export async function rejectRequest(requestId) {
   const response = await fetch(
     `${API_BASE_URL}/requests/${requestId}/reject`,
     {
@@ -60,9 +100,9 @@ export const rejectRequest = async (requestId) => {
   }
 
   return response.json();
-};
+}
 
-export const getHospitals = async () => {
+export async function getHospitals() {
   const response = await fetch(`${API_BASE_URL}/hospitals`);
 
   if (!response.ok) {
@@ -70,4 +110,4 @@ export const getHospitals = async () => {
   }
 
   return response.json();
-};
+}

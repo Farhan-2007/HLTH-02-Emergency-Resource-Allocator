@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { rankHospitals } from "../services/api";
+import {
+  createCase,
+  rankHospitals,
+} from "../services/api";
 
-function EmergencyForm({ onResults, onLoading }) {
+function EmergencyForm({ onEmergencyCreated, onLoading }) {
   const [latitude, setLatitude] = useState("19.0760");
   const [longitude, setLongitude] = useState("72.8777");
   const [severity, setSeverity] = useState("high");
@@ -15,19 +18,31 @@ function EmergencyForm({ onResults, onLoading }) {
     onLoading(true);
 
     try {
-      const data = {
+      const caseData = {
+        incident_latitude: Number(latitude),
+        incident_longitude: Number(longitude),
+        required_facilities: [facility],
+        severity: severity,
+      };
+
+      const newCase = await createCase(caseData);
+
+      const rankingData = {
         incident_latitude: Number(latitude),
         incident_longitude: Number(longitude),
         required_facilities: [facility],
       };
 
-      const results = await rankHospitals(data);
+      const hospitals = await rankHospitals(rankingData);
 
-      onResults(results);
+      onEmergencyCreated({
+        case: newCase,
+        hospitals: hospitals,
+        facility: facility,
+      });
     } catch (err) {
       console.error(err);
-      setError("Could not connect to the backend.");
-      onResults([]);
+      setError("Could not create emergency or connect to backend.");
     } finally {
       onLoading(false);
     }
@@ -83,7 +98,11 @@ function EmergencyForm({ onResults, onLoading }) {
         </select>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
 
       <button className="primary-button" type="submit">
         Find Hospitals

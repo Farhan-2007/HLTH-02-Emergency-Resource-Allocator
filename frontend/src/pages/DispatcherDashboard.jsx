@@ -1,22 +1,95 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EmergencyForm from "../components/EmergencyForm";
 import HospitalCard from "../components/HospitalCard";
+import {
+  createRequest,
+  getCase,
+} from "../services/api";
 
 function DispatcherDashboard() {
   const [hospitals, setHospitals] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const handleResults = (results) => {
-    setHospitals(results);
+  const [currentCase, setCurrentCase] = useState(null);
+  const [facility, setFacility] = useState("");
+
+  const [requestSent, setRequestSent] = useState(false);
+  const [selectedHospital, setSelectedHospital] = useState(null);
+
+  const [caseStatus, setCaseStatus] = useState("");
+
+  const handleEmergencyCreated = (data) => {
+    setCurrentCase(data.case);
+    setHospitals(data.hospitals);
+    setFacility(data.facility);
+
+    setRequestSent(false);
+    setSelectedHospital(null);
+    setCaseStatus(data.case.status);
   };
+
+  const handleSendRequest = async (hospital) => {
+    if (!currentCase) {
+      alert("Please create an emergency first.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const request = await createRequest({
+        case_id: currentCase.id,
+        hospital_id: hospital.hospital_id,
+        resource_type: facility,
+      });
+
+      setSelectedHospital(hospital);
+      setRequestSent(true);
+
+      setCaseStatus("requested");
+
+      console.log("Request created:", request);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to send request.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!currentCase || !requestSent) {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const updatedCase = await getCase(currentCase.id);
+
+        setCaseStatus(updatedCase.status);
+        setCurrentCase(updatedCase);
+      } catch (error) {
+        console.error("Failed to update case:", error);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentCase?.id, requestSent]);
 
   return (
     <div className="dashboard">
+
       <div className="page-heading">
         <div>
-          <p className="eyebrow">EMERGENCY CONTROL CENTER</p>
+          <p className="eyebrow">
+            EMERGENCY CONTROL CENTER
+          </p>
+
           <h2>Dispatcher Dashboard</h2>
-          <p>Find the most suitable hospital for an incoming emergency.</p>
+
+          <p>
+            Find and send an emergency request to a hospital.
+          </p>
         </div>
 
         <div className="system-status">
@@ -28,55 +101,115 @@ function DispatcherDashboard() {
       <div className="dashboard-grid">
 
         <section className="panel">
+
           <div className="panel-header">
             <div>
               <h3>New Emergency</h3>
-              <p>Enter incident information to find hospitals.</p>
+
+              <p>
+                Enter incident information to find hospitals.
+              </p>
             </div>
           </div>
 
           <EmergencyForm
-            onResults={handleResults}
+            onEmergencyCreated={handleEmergencyCreated}
             onLoading={setLoading}
           />
+
         </section>
 
         <section className="panel">
+
           <div className="panel-header">
             <div>
               <h3>Hospital Recommendations</h3>
-              <p>Ranked using resource availability and travel time.</p>
+
+              <p>
+                Ranked using resource availability and travel time.
+              </p>
             </div>
           </div>
 
-          {loading ? (
+          {loading && hospitals.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">...</div>
-              <h3>Finding hospitals</h3>
-              <p>Checking hospital resources and travel time.</p>
+              <div className="empty-icon">
+                ...
+              </div>
+
+              <h3>
+                Finding hospitals
+              </h3>
+
+              <p>
+                Checking hospital resources and travel time.
+              </p>
             </div>
           ) : hospitals.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">+</div>
-              <h3>No active emergency</h3>
+
+              <div className="empty-icon">
+                +
+              </div>
+
+              <h3>
+                No active emergency
+              </h3>
+
               <p>
-                Enter an emergency on the left to see recommended hospitals.
+                Enter an emergency on the left to see
+                recommended hospitals.
               </p>
+
             </div>
           ) : (
-            <div className="hospital-list">
-              {hospitals.map((hospital, index) => (
-                <HospitalCard
-                  key={hospital.hospital_id}
-                  hospital={hospital}
-                  rank={index + 1}
-                />
-              ))}
-            </div>
+            <>
+              {currentCase && (
+                <div className="case-status-card">
+
+                  <div>
+                    <span>CASE</span>
+
+                    <strong>
+                      #{currentCase.id}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>STATUS</span>
+
+                    <strong>
+                      {caseStatus.toUpperCase()}
+                    </strong>
+                  </div>
+
+                </div>
+              )}
+
+              <div className="hospital-list">
+
+                {hospitals.map((hospital, index) => (
+                  <HospitalCard
+                    key={hospital.hospital_id}
+                    hospital={hospital}
+                    rank={index + 1}
+                    onSendRequest={handleSendRequest}
+                    requestSent={
+                      requestSent &&
+                      selectedHospital?.hospital_id ===
+                        hospital.hospital_id
+                    }
+                  />
+                ))}
+
+              </div>
+            </>
           )}
+
         </section>
 
       </div>
+
     </div>
   );
 }

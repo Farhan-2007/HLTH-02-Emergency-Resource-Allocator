@@ -1,4 +1,9 @@
-function HospitalCard({ hospital, rank }) {
+function HospitalCard({
+  hospital,
+  rank,
+  onSendRequest,
+  requestSent,
+}) {
   return (
     <div className="hospital-card">
 
@@ -43,6 +48,14 @@ function HospitalCard({ hospital, rank }) {
           {hospital.reason}
         </p>
       </div>
+
+      <button
+        className="request-button"
+        onClick={() => onSendRequest(hospital)}
+        disabled={requestSent}
+      >
+        {requestSent ? "Request Sent" : "Send Request"}
+      </button>
 
     </div>
   );
