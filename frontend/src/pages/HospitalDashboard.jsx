@@ -2,16 +2,18 @@ import RequestCard from "../components/RequestCard";
 import { useEffect, useState } from "react";
 import {
   getHospitalRequests,
+  getActiveHospitalRequests,
   getHospitals,
 } from "../services/api";
 
 function HospitalDashboard() {
   // Temporary hospital ID for prototype
-  const HOSPITAL_ID = 1;
+  const HOSPITAL_ID = 2;
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hospital, setHospital] = useState(null);
+  const [activePatients, setActivePatients] = useState([]);
 
   const loadHospital = async () => {
     try {
@@ -27,25 +29,40 @@ function HospitalDashboard() {
     }
   };
 
-  const loadRequests = async () => {
+  const loadRequests = async (showLoading = false) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
 
       const data = await getHospitalRequests(HOSPITAL_ID);
       setRequests(data);
     } catch (error) {
       console.error("Failed to load requests:", error);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const loadActivePatients = async () => {
+    try {
+      const data = await getActiveHospitalRequests(HOSPITAL_ID);
+      setActivePatients(data);
+    } catch (error) {
+      console.error("Failed to load active patients:", error);
     }
   };
 
   useEffect(() => {
     loadRequests();
+    loadActivePatients();
     loadHospital();
 
     const interval = setInterval(() => {
       loadRequests();
+      loadActivePatients();
       loadHospital();
     }, 3000);
 
@@ -114,7 +131,15 @@ function HospitalDashboard() {
         {loading ? (
           <p>Loading requests...</p>
         ) : requests.length === 0 ? (
-          <p>No pending requests</p>
+          <div className="empty-state request-empty-state">
+            <div className="empty-icon">✓</div>
+
+            <h3>No pending requests</h3>
+
+            <p>
+              All emergency requests have been processed.
+            </p>
+          </div>
         ) : (
           requests.map((request) => (
             <RequestCard
@@ -128,6 +153,35 @@ function HospitalDashboard() {
           ))
         )}
       </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h3>Active Patients</h3>
+
+            <p>
+              Patients currently occupying hospital resources
+            </p>
+          </div>
+        </div>
+
+        {activePatients.length === 0 ? (
+          <p>No active patients</p>
+        ) : (
+          activePatients.map((patient) => (
+            <RequestCard
+              key={patient.id}
+              request={patient}
+              onRequestUpdate={() => {
+                loadRequests();
+                loadActivePatients();
+                loadHospital();
+              }}
+            />
+          ))
+        )}
+      </section>
+
     </div>
   );
 }

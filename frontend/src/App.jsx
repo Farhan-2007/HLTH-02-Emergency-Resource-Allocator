@@ -6,6 +6,15 @@ import "./index.css";
 function App() {
   const [role, setRole] = useState("dispatcher");
 
+  const [dispatcherState, setDispatcherState] = useState({
+    hospitals: [],
+    currentCase: null,
+    facility: "",
+    requestSent: false,
+    selectedHospital: null,
+    caseStatus: "",
+  });
+
   return (
     <div className="app">
       <header className="topbar">
@@ -33,7 +42,10 @@ function App() {
 
       <main>
         {role === "dispatcher" ? (
-          <DispatcherDashboard />
+          <DispatcherDashboard
+            dispatcherState={dispatcherState}
+            setDispatcherState={setDispatcherState}
+          />
         ) : (
           <HospitalDashboard />
         )}

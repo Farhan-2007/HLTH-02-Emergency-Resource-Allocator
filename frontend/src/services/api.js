@@ -72,7 +72,7 @@ export async function getHospitalRequests(hospitalId) {
   return response.json();
 }
 
-export async function acceptRequest(requestId) {
+export const acceptRequest = async (requestId) => {
   const response = await fetch(
     `${API_BASE_URL}/requests/${requestId}/accept`,
     {
@@ -81,11 +81,15 @@ export async function acceptRequest(requestId) {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to accept request");
+    const errorData = await response.json();
+
+    throw new Error(
+      errorData.detail || "Failed to accept request"
+    );
   }
 
   return response.json();
-}
+};
 
 export async function rejectRequest(requestId) {
   const response = await fetch(
@@ -111,3 +115,30 @@ export async function getHospitals() {
 
   return response.json();
 }
+
+export const dischargeRequest = async (requestId) => {
+  const response = await fetch(
+    `${API_BASE_URL}/requests/${requestId}/discharge`,
+    {
+      method: "POST",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to discharge request");
+  }
+
+  return response.json();
+};
+
+export const getActiveHospitalRequests = async (hospitalId) => {
+  const response = await fetch(
+    `${API_BASE_URL}/requests/hospital/${hospitalId}/active`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load active patients");
+  }
+
+  return response.json();
+};
