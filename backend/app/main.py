@@ -6,6 +6,7 @@ from app.models import Hospital, Case, Reservation
 from app.routes.hospitals import router as hospital_router
 from app.routes.cases import router as case_router
 from app.routes.ranking import router as ranking_router
+from app.routes.reservations import router as reservation_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(hospital_router)
 app.include_router(case_router)
 app.include_router(ranking_router)
+app.include_router(reservation_router)
 
 
 @app.get("/")
