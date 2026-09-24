@@ -1,4 +1,5 @@
 from datetime import datetime
+from app.models.case import Case
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -76,6 +77,13 @@ def accept_reservation(
 
     reservation.status = "accepted"
 
+    case = db.query(Case).filter(
+         Case.id == reservation.case_id
+    ).first()
+
+    if case:
+         case.status = "accepted"
+
     db.commit()
     db.refresh(reservation)
 
@@ -103,6 +111,13 @@ def reject_reservation(
         )
 
     reservation.status = "rejected"
+
+    case = db.query(Case).filter(
+         Case.id == reservation.case_id
+    ).first()
+
+    if case:
+         case.status = "rejected"
 
     db.commit()
     db.refresh(reservation)

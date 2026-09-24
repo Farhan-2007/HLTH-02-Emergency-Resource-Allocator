@@ -43,6 +43,13 @@ function HospitalDashboard() {
   useEffect(() => {
     loadRequests();
     loadHospital();
+
+    const interval = setInterval(() => {
+      loadRequests();
+      loadHospital();
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
