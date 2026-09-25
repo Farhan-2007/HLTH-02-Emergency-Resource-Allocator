@@ -6,13 +6,13 @@ import {
   getHospitals,
 } from "../services/api";
 
-function HospitalDashboard() {
-  const [hospitalId, setHospitalId] = useState(1);
+function HospitalDashboard({ hospitalId = 1 }) {
+  
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hospital, setHospital] = useState(null);
   const [activePatients, setActivePatients] = useState([]);
+  const [hospital, setHospital] = useState(null);
 
   const loadHospital = useCallback(async () => {
     try {
@@ -57,6 +57,14 @@ function HospitalDashboard() {
     }
   }, [hospitalId]);
 
+const refreshHospitalData = useCallback(async () => {
+  await Promise.all([
+    loadRequests(),
+    loadActivePatients(),
+    loadHospital(),
+  ]);
+}, [loadRequests, loadActivePatients, loadHospital]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       loadRequests(true);
@@ -74,13 +82,22 @@ function HospitalDashboard() {
       clearTimeout(timer);
       clearInterval(interval);
     };
-  }, [hospitalId, loadRequests, loadActivePatients, loadHospital]);
+  }, [
+    hospitalId,
+    loadRequests,
+    loadActivePatients,
+    loadHospital,
+  ]);
 
   return (
     <div className="dashboard">
+
+      {/* Page heading */}
       <div className="page-heading">
         <div>
-          <p className="eyebrow">HOSPITAL OPERATIONS</p>
+          <p className="eyebrow">
+            HOSPITAL OPERATIONS
+          </p>
 
           <h2>Hospital Dashboard</h2>
 
@@ -95,49 +112,47 @@ function HospitalDashboard() {
         </div>
       </div>
 
-      <div className="hospital-selector">
-        <label>Select Hospital</label>
-
-        <select
-          value={hospitalId}
-          onChange={(e) => setHospitalId(Number(e.target.value))}
-        >
-          <option value={1}>City Care Hospital</option>
-          <option value={2}>Metro General Hospital</option>
-          <option value={3}>Sunrise Medical Center</option>
-        </select>
-      </div>
-
+      {/* Resources */}
       <div className="resource-grid">
+
         <div className="resource-card">
           <span>ICU</span>
+
           <strong>
             {hospital?.available?.ICU ?? 0} /{" "}
             {hospital?.capacity?.ICU ?? 0}
           </strong>
+
           <small>Available beds</small>
         </div>
 
         <div className="resource-card">
           <span>Trauma</span>
+
           <strong>
             {hospital?.available?.Trauma ?? 0} /{" "}
             {hospital?.capacity?.Trauma ?? 0}
           </strong>
+
           <small>Available units</small>
         </div>
 
         <div className="resource-card">
           <span>Ventilator</span>
+
           <strong>
             {hospital?.available?.Ventilator ?? 0} /{" "}
             {hospital?.capacity?.Ventilator ?? 0}
           </strong>
+
           <small>Available units</small>
         </div>
+
       </div>
 
+      {/* Incoming requests */}
       <section className="panel">
+
         <div className="panel-header">
           <div>
             <h3>Incoming Requests</h3>
@@ -152,29 +167,36 @@ function HospitalDashboard() {
           <p>Loading requests...</p>
         ) : requests.length === 0 ? (
           <div className="empty-state request-empty-state">
-            <div className="empty-icon">✓</div>
 
-            <h3>No pending requests</h3>
+            <div className="empty-icon">
+              ✓
+            </div>
+
+            <h3>
+              No pending requests
+            </h3>
 
             <p>
               All emergency requests have been processed.
             </p>
+
           </div>
         ) : (
           requests.map((request) => (
             <RequestCard
               key={request.id}
               request={request}
-              onRequestUpdate={() => {
-                loadRequests();
-                loadHospital();
-              }}
+              hospital={hospital}
+              onRequestUpdate={refreshHospitalData}
             />
           ))
         )}
+
       </section>
 
+      {/* Active patients */}
       <section className="panel">
+
         <div className="panel-header">
           <div>
             <h3>Active Patients</h3>
@@ -186,21 +208,34 @@ function HospitalDashboard() {
         </div>
 
         {activePatients.length === 0 ? (
-          <p>No active patients</p>
+          <div className="empty-state">
+
+            <div className="empty-icon">
+              ✓
+            </div>
+
+            <h3>
+              No active patients
+            </h3>
+
+            <p>
+              No patients are currently admitted.
+            </p>
+
+          </div>
         ) : (
           activePatients.map((patient) => (
             <RequestCard
               key={patient.id}
               request={patient}
-              onRequestUpdate={() => {
-                loadRequests();
-                loadActivePatients();
-                loadHospital();
-              }}
+              hospital={hospital}
+              onRequestUpdate={refreshHospitalData}
             />
           ))
         )}
+
       </section>
+
     </div>
   );
 }

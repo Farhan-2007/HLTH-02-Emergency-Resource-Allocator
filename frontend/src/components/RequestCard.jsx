@@ -5,10 +5,28 @@ import {
   dischargeRequest,
 } from "../services/api";
 
-function RequestCard({ request, onRequestUpdate }) {
+function RequestCard({
+  request,
+  hospital,
+  onRequestUpdate,
+}) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+
+  /*
+   * Check how many units/beds of the required
+   * resource are currently available.
+   *
+   * Example:
+   * ICU request + ICU = 0
+   * → Accept button disabled
+   *
+   * ICU request + ICU = 1
+   * → Accept button enabled
+   */
+  const availableResource =
+    hospital?.available?.[request.resource_type] ?? 0;
 
   const handleAccept = async () => {
     try {
@@ -18,7 +36,10 @@ function RequestCard({ request, onRequestUpdate }) {
 
       await acceptRequest(request.id);
 
-      setMessage("Request accepted successfully.");
+      setMessage(
+        "Request accepted successfully."
+      );
+
       setMessageType("success");
 
       if (onRequestUpdate) {
@@ -26,13 +47,20 @@ function RequestCard({ request, onRequestUpdate }) {
           onRequestUpdate();
         }, 500);
       }
+
     } catch (error) {
-      console.error("Failed to accept request:", error);
+      console.error(
+        "Failed to accept request:",
+        error
+      );
 
       setMessage(
-        error?.message || "Unable to accept this request."
+        error?.message ||
+        "Unable to accept this request."
       );
+
       setMessageType("error");
+
     } finally {
       setLoading(false);
     }
@@ -46,7 +74,10 @@ function RequestCard({ request, onRequestUpdate }) {
 
       await rejectRequest(request.id);
 
-      setMessage("Request rejected successfully.");
+      setMessage(
+        "Request rejected successfully."
+      );
+
       setMessageType("success");
 
       if (onRequestUpdate) {
@@ -54,13 +85,20 @@ function RequestCard({ request, onRequestUpdate }) {
           onRequestUpdate();
         }, 500);
       }
+
     } catch (error) {
-      console.error("Failed to reject request:", error);
+      console.error(
+        "Failed to reject request:",
+        error
+      );
 
       setMessage(
-        error?.message || "Unable to reject this request."
+        error?.message ||
+        "Unable to reject this request."
       );
+
       setMessageType("error");
+
     } finally {
       setLoading(false);
     }
@@ -70,17 +108,30 @@ function RequestCard({ request, onRequestUpdate }) {
     try {
       setLoading(true);
       setMessage("");
+      setMessageType("");
 
       await dischargeRequest(request.id);
 
       setMessage("Patient discharged successfully.");
+      setMessageType("success");
 
       if (onRequestUpdate) {
-        onRequestUpdate();
+        await onRequestUpdate();
       }
+
     } catch (error) {
-      console.error("Failed to discharge request:", error);
-      setMessage("Failed to discharge patient.");
+      console.error(
+        "Failed to discharge request:",
+        error
+      );
+
+      setMessage(
+        error?.message ||
+        "Failed to discharge patient."
+      );
+
+      setMessageType("error");
+
     } finally {
       setLoading(false);
     }
@@ -94,7 +145,9 @@ function RequestCard({ request, onRequestUpdate }) {
 
         <div>
           <span className="request-label">
-            EMERGENCY REQUEST
+            {request.status === "accepted"
+              ? "ACTIVE PATIENT"
+              : "EMERGENCY REQUEST"}
           </span>
 
           <h3>
@@ -112,7 +165,9 @@ function RequestCard({ request, onRequestUpdate }) {
       <div className="request-info">
 
         <div>
-          <span>Required Facility</span>
+          <span>
+            Required Facility
+          </span>
 
           <strong>
             {request.resource_type}
@@ -120,7 +175,9 @@ function RequestCard({ request, onRequestUpdate }) {
         </div>
 
         <div>
-          <span>Request ID</span>
+          <span>
+            Request ID
+          </span>
 
           <strong>
             #{request.id}
@@ -129,57 +186,92 @@ function RequestCard({ request, onRequestUpdate }) {
 
       </div>
 
-      {/* Waiting status */}
-      <div className="request-status">
+      {/* Status */}
+      <div
+        className={`request-status ${request.status === "accepted"
+            ? "active-status"
+            : availableResource <= 0
+              ? "waiting-status"
+              : "ready-status"
+          }`}
+      >
         <span className="status-dot"></span>
 
-        Waiting for hospital response
+        {request.status === "accepted"
+          ? "Patient currently admitted"
+          : availableResource <= 0
+            ? `Waiting for ${request.resource_type} availability`
+            : `${request.resource_type} available — ready for acceptance`}
       </div>
 
       {/* Actions */}
       <div className="request-actions">
+
+        {/* Pending request */}
         {request.status === "requested" && (
           <>
             <button
               onClick={handleAccept}
-              disabled={loading}
+              disabled={
+                loading ||
+                availableResource <= 0
+              }
+              title={
+                availableResource <= 0
+                  ? `No ${request.resource_type} available`
+                  : "Accept emergency request"
+              }
             >
-              {loading ? "Processing..." : "Accept"}
+              {loading
+                ? "Processing..."
+                : availableResource <= 0
+                  ? "No Capacity"
+                  : "Accept"}
             </button>
 
             <button
               onClick={handleReject}
               disabled={loading}
             >
-              {loading ? "Processing..." : "Reject"}
+              {loading
+                ? "Processing..."
+                : "Reject"}
             </button>
           </>
         )}
 
+        {/* Accepted patient */}
         {request.status === "accepted" && (
           <button
             className="discharge-button"
             onClick={handleDischarge}
             disabled={loading}
           >
-            {loading ? "Processing..." : "Discharge Patient"}
+            {loading
+              ? "Processing..."
+              : "Discharge Patient"}
           </button>
         )}
+
       </div>
 
       {/* Feedback */}
       {message && (
         <div
           className={`request-message ${messageType === "success"
-              ? "success-message"
-              : "error-message"
+            ? "success-message"
+            : "error-message"
             }`}
         >
+
           <span>
-            {messageType === "success" ? "✓" : "!"}
+            {messageType === "success"
+              ? "✓"
+              : "!"}
           </span>
 
           {message}
+
         </div>
       )}
 

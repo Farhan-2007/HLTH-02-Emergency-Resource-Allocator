@@ -41,6 +41,9 @@ function DispatcherDashboard({
     try {
       setLoading(true);
 
+      console.log("Selected hospital:", hospital);
+      console.log("Hospital ID:", hospital.hospital_id);
+
       const request = await createRequest({
         case_id: currentCase.id,
         hospital_id: hospital.hospital_id,
@@ -205,8 +208,7 @@ function DispatcherDashboard({
                     onSendRequest={handleSendRequest}
                     requestSent={
                       requestSent &&
-                      selectedHospital?.hospital_id ===
-                        hospital.hospital_id
+                      selectedHospital?.hospital_id === hospital.hospital_id
                     }
                   />
                 ))}

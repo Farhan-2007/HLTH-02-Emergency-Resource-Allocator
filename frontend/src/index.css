@@ -634,28 +634,46 @@ select {
   font-size: 11px;
 }
 
-.hospital-selector {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: white;
-  border: 1px solid #e4e8ef;
-  border-radius: 12px;
-}
+/* Request status states */
 
-.hospital-selector label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: #687386;
-  margin-bottom: 8px;
-}
-
-.hospital-selector select {
-  width: 100%;
-  max-width: 360px;
+.request-status {
+  margin-top: 16px;
   padding: 11px 12px;
-  border: 1px solid #dce1e8;
   border-radius: 8px;
-  background: white;
-  color: #172033;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.waiting-status {
+  background: #fff8e8;
+  color: #946c13;
+}
+
+.ready-status {
+  background: #eaf8f1;
+  color: #168653;
+}
+
+.active-status {
+  background: #eef4ff;
+  color: #315ea8;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d9a72e;
+  flex-shrink: 0;
+}
+
+.ready-status .status-dot {
+  background: #20b26b;
+}
+
+.active-status .status-dot {
+  background: #4778c7;
 }
