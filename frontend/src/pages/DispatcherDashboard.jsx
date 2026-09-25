@@ -83,7 +83,7 @@ function DispatcherDashboard({
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [currentCase?.id, requestSent, setDispatcherState]);
+  }, [currentCase, requestSent, setDispatcherState]);
 
   return (
     <div className="dashboard">

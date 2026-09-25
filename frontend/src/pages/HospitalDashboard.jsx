@@ -1,5 +1,5 @@
 import RequestCard from "../components/RequestCard";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getHospitalRequests,
   getActiveHospitalRequests,
@@ -7,58 +7,62 @@ import {
 } from "../services/api";
 
 function HospitalDashboard() {
-  // Temporary hospital ID for prototype
-  const HOSPITAL_ID = 2;
+  const [hospitalId, setHospitalId] = useState(1);
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hospital, setHospital] = useState(null);
   const [activePatients, setActivePatients] = useState([]);
 
-  const loadHospital = async () => {
+  const loadHospital = useCallback(async () => {
     try {
       const hospitals = await getHospitals();
 
       const currentHospital = hospitals.find(
-        (hospital) => hospital.id === HOSPITAL_ID
+        (hospital) => hospital.id === hospitalId
       );
 
       setHospital(currentHospital);
     } catch (error) {
       console.error("Failed to load hospital:", error);
     }
-  };
+  }, [hospitalId]);
 
-  const loadRequests = async (showLoading = false) => {
-    try {
-      if (showLoading) {
-        setLoading(true);
+  const loadRequests = useCallback(
+    async (showLoading = false) => {
+      try {
+        if (showLoading) {
+          setLoading(true);
+        }
+
+        const data = await getHospitalRequests(hospitalId);
+        setRequests(data);
+      } catch (error) {
+        console.error("Failed to load requests:", error);
+      } finally {
+        if (showLoading) {
+          setLoading(false);
+        }
       }
+    },
+    [hospitalId]
+  );
 
-      const data = await getHospitalRequests(HOSPITAL_ID);
-      setRequests(data);
-    } catch (error) {
-      console.error("Failed to load requests:", error);
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
-    }
-  };
-
-  const loadActivePatients = async () => {
+  const loadActivePatients = useCallback(async () => {
     try {
-      const data = await getActiveHospitalRequests(HOSPITAL_ID);
+      const data = await getActiveHospitalRequests(hospitalId);
       setActivePatients(data);
     } catch (error) {
       console.error("Failed to load active patients:", error);
     }
-  };
+  }, [hospitalId]);
 
   useEffect(() => {
-    loadRequests();
-    loadActivePatients();
-    loadHospital();
+    const timer = setTimeout(() => {
+      loadRequests(true);
+      loadActivePatients();
+      loadHospital();
+    }, 0);
 
     const interval = setInterval(() => {
       loadRequests();
@@ -66,8 +70,11 @@ function HospitalDashboard() {
       loadHospital();
     }, 3000);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [hospitalId, loadRequests, loadActivePatients, loadHospital]);
 
   return (
     <div className="dashboard">
@@ -86,6 +93,19 @@ function HospitalDashboard() {
           <span></span>
           Hospital Online
         </div>
+      </div>
+
+      <div className="hospital-selector">
+        <label>Select Hospital</label>
+
+        <select
+          value={hospitalId}
+          onChange={(e) => setHospitalId(Number(e.target.value))}
+        >
+          <option value={1}>City Care Hospital</option>
+          <option value={2}>Metro General Hospital</option>
+          <option value={3}>Sunrise Medical Center</option>
+        </select>
       </div>
 
       <div className="resource-grid">
@@ -181,7 +201,6 @@ function HospitalDashboard() {
           ))
         )}
       </section>
-
     </div>
   );
 }
