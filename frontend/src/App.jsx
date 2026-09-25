@@ -47,7 +47,7 @@ function App() {
             setDispatcherState={setDispatcherState}
           />
         ) : (
-          <HospitalDashboard />
+          <HospitalDashboard hospitalId={1}/>
         )}
       </main>
     </div>
