@@ -13,6 +13,8 @@ from app.schemas.reservation import ReservationCreate, ReservationResponse
 router = APIRouter()
 
 
+from app.models.case import Case  # you already import this at the top
+
 @router.post("/requests", response_model=ReservationResponse)
 def create_reservation(
     request: ReservationCreate,
@@ -27,6 +29,12 @@ def create_reservation(
     )
 
     db.add(new_reservation)
+
+    # keep the case's own status in sync with the reservation
+    case = db.query(Case).filter(Case.id == request.case_id).first()
+    if case:
+        case.status = "requested"
+
     db.commit()
     db.refresh(new_reservation)
 

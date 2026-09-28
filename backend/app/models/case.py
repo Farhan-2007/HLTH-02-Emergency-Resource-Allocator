@@ -14,6 +14,6 @@ class Case(Base):
 
     severity = Column(String, nullable=False)
 
-    status = Column(String, nullable=False, default="requested")
+    status = Column(String, nullable=False, default="pending")
 
     created_at = Column(DateTime, nullable=False)

@@ -18,7 +18,7 @@ def create_case(case: CaseCreate, db: Session = Depends(get_db)):
         incident_longitude=case.incident_longitude,
         required_facilities=case.required_facilities,
         severity=case.severity,
-        status="requested",
+        status="pending",
         created_at=datetime.now()
     )
 
