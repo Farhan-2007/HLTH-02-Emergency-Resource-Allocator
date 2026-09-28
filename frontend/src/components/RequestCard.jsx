@@ -28,6 +28,15 @@ function RequestCard({
   const availableResource =
     hospital?.available?.[request.resource_type] ?? 0;
 
+  // Only claim "no capacity" when we actually have THIS hospital's data.
+  // While the hospital is still loading (or belongs to a different hospital),
+  // capacity is unknown, so we don't block the button. The backend still
+  // validates on Accept and returns the real reason if it is really full.
+  const hospitalLoaded =
+    Boolean(hospital) && hospital.id === request.hospital_id;
+
+  const noCapacity = hospitalLoaded && availableResource <= 0;
+
   const handleAccept = async () => {
     try {
       setLoading(true);
@@ -190,7 +199,7 @@ function RequestCard({
       <div
         className={`request-status ${request.status === "accepted"
             ? "active-status"
-            : availableResource <= 0
+            : noCapacity
               ? "waiting-status"
               : "ready-status"
           }`}
@@ -199,7 +208,7 @@ function RequestCard({
 
         {request.status === "accepted"
           ? "Patient currently admitted"
-          : availableResource <= 0
+          : noCapacity
             ? `Waiting for ${request.resource_type} availability`
             : `${request.resource_type} available — ready for acceptance`}
       </div>
@@ -214,17 +223,17 @@ function RequestCard({
               onClick={handleAccept}
               disabled={
                 loading ||
-                availableResource <= 0
+                noCapacity
               }
               title={
-                availableResource <= 0
+                noCapacity
                   ? `No ${request.resource_type} available`
                   : "Accept emergency request"
               }
             >
               {loading
                 ? "Processing..."
-                : availableResource <= 0
+                : noCapacity
                   ? "No Capacity"
                   : "Accept"}
             </button>

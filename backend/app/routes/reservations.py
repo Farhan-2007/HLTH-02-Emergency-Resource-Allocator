@@ -37,9 +37,10 @@ def accept_reservation(
     request_id: int,
     db: Session = Depends(get_db)
 ):
+    # Lock the reservation row so two simultaneous accepts cannot both pass
     reservation = db.query(Reservation).filter(
         Reservation.id == request_id
-    ).first()
+    ).with_for_update().first()
 
     if not reservation:
         raise HTTPException(
@@ -47,9 +48,17 @@ def accept_reservation(
             detail="Reservation not found"
         )
 
+    # Only a pending request can be accepted (prevents double-decrement)
+    if reservation.status != "requested":
+        raise HTTPException(
+            status_code=400,
+            detail="Reservation is not pending"
+        )
+
+    # Lock the hospital row so the capacity check + decrement is atomic
     hospital = db.query(Hospital).filter(
         Hospital.id == reservation.hospital_id
-    ).first()
+    ).with_for_update().first()
 
     if not hospital:
         raise HTTPException(

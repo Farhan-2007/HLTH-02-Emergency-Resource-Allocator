@@ -6,88 +6,106 @@ import {
   getHospitals,
 } from "../services/api";
 
-function HospitalDashboard({ hospitalId = 1 }) {
-  
+function HospitalDashboard() {
+  const [hospitals, setHospitals] = useState([]);
+  const [hospitalId, setHospitalId] = useState(null);
 
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activePatients, setActivePatients] = useState([]);
-  const [hospital, setHospital] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const loadHospital = useCallback(async () => {
+  // The selected hospital is derived from the list, so its ICU / Trauma /
+  // Ventilator numbers stay fresh every time the list refreshes.
+  const hospital = hospitals.find((h) => h.id === hospitalId) || null;
+
+  const loadHospitals = useCallback(async () => {
     try {
-      const hospitals = await getHospitals();
+      const data = await getHospitals();
+      setHospitals(data);
 
-      const currentHospital = hospitals.find(
-        (hospital) => hospital.id === hospitalId
+      // Pick the first hospital on first load, or if the current id
+      // no longer exists (e.g. after re-seeding the database).
+      setHospitalId((current) =>
+        data.some((h) => h.id === current)
+          ? current
+          : data[0]?.id ?? null
       );
-
-      setHospital(currentHospital);
     } catch (error) {
-      console.error("Failed to load hospital:", error);
+      console.error("Failed to load hospitals:", error);
     }
-  }, [hospitalId]);
+  }, []);
 
-  const loadRequests = useCallback(
-    async (showLoading = false) => {
+  // Refresh everything (used after Accept / Reject / Discharge)
+  const refreshHospitalData = useCallback(async () => {
+    if (hospitalId === null) return;
+
+    try {
+      const [pending, active] = await Promise.all([
+        getHospitalRequests(hospitalId),
+        getActiveHospitalRequests(hospitalId),
+      ]);
+
+      setRequests(pending);
+      setActivePatients(active);
+      await loadHospitals();
+    } catch (error) {
+      console.error("Failed to refresh hospital data:", error);
+    }
+  }, [hospitalId, loadHospitals]);
+
+  const handleHospitalChange = (event) => {
+    setHospitalId(Number(event.target.value));
+
+    // Clear the previous hospital's data straight away
+    setRequests([]);
+    setActivePatients([]);
+    setLoading(true);
+  };
+
+  // Load the hospital list and keep it fresh
+  useEffect(() => {
+    loadHospitals();
+
+    const interval = setInterval(loadHospitals, 3000);
+    return () => clearInterval(interval);
+  }, [loadHospitals]);
+
+  // Load requests + active patients for the selected hospital
+  useEffect(() => {
+    if (hospitalId === null) return;
+
+    // Ignore responses that arrive after the user switched hospital
+    let cancelled = false;
+
+    const load = async (isInitial) => {
       try {
-        if (showLoading) {
-          setLoading(true);
-        }
+        const [pending, active] = await Promise.all([
+          getHospitalRequests(hospitalId),
+          getActiveHospitalRequests(hospitalId),
+        ]);
 
-        const data = await getHospitalRequests(hospitalId);
-        setRequests(data);
+        if (cancelled) return;
+
+        setRequests(pending);
+        setActivePatients(active);
       } catch (error) {
-        console.error("Failed to load requests:", error);
+        console.error("Failed to load hospital data:", error);
       } finally {
-        if (showLoading) {
+        if (!cancelled && isInitial) {
           setLoading(false);
         }
       }
-    },
-    [hospitalId]
-  );
+    };
 
-  const loadActivePatients = useCallback(async () => {
-    try {
-      const data = await getActiveHospitalRequests(hospitalId);
-      setActivePatients(data);
-    } catch (error) {
-      console.error("Failed to load active patients:", error);
-    }
-  }, [hospitalId]);
+    load(true);
 
-const refreshHospitalData = useCallback(async () => {
-  await Promise.all([
-    loadRequests(),
-    loadActivePatients(),
-    loadHospital(),
-  ]);
-}, [loadRequests, loadActivePatients, loadHospital]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadRequests(true);
-      loadActivePatients();
-      loadHospital();
-    }, 0);
-
-    const interval = setInterval(() => {
-      loadRequests();
-      loadActivePatients();
-      loadHospital();
-    }, 3000);
+    const interval = setInterval(() => load(false), 3000);
 
     return () => {
-      clearTimeout(timer);
+      cancelled = true;
       clearInterval(interval);
     };
-  }, [
-    hospitalId,
-    loadRequests,
-    loadActivePatients,
-    loadHospital,
-  ]);
+  }, [hospitalId]);
 
   return (
     <div className="dashboard">
@@ -99,16 +117,29 @@ const refreshHospitalData = useCallback(async () => {
             HOSPITAL OPERATIONS
           </p>
 
-          <h2>Hospital Dashboard</h2>
+          <h2>{hospital ? hospital.name : "Hospital Dashboard"}</h2>
 
           <p>
             Manage emergency requests and available resources.
           </p>
         </div>
 
-        <div className="system-status">
-          <span></span>
-          Hospital Online
+        <div className="form-group" style={{ minWidth: 240 }}>
+          <label htmlFor="hospital-select">
+            Viewing as hospital
+          </label>
+
+          <select
+            id="hospital-select"
+            value={hospitalId ?? ""}
+            onChange={handleHospitalChange}
+          >
+            {hospitals.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
