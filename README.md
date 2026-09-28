@@ -676,26 +676,7 @@ The prototype can be extended into a production-ready emergency coordination pla
 
 # Screenshots
 
-Screenshots demonstrating the working prototype will be added here.
-
-## Dispatcher Dashboard
-
-![Dispatcher Dashboard](docs/screenshots/dispatcher-dashboard.png)
-
-## Hospital Dashboard
-
-![Hospital Dashboard](docs/screenshots/hospital-dashboard.png)
-
-## Hospital Recommendations
-
-![Hospital Recommendations](docs/screenshots/hospital-recommendations.png)
-
-## Emergency Request
-
-![Emergency Request](docs/screenshots/emergency-request.png)
-
-> Replace the screenshot filenames above with the actual screenshot files added to `docs/screenshots/`.
-
+Prototype screenshots are included in the Idea Submission PPT and demonstrated in the prototype video submitted for evaluation.
 ---
 
 # Demo Flow
