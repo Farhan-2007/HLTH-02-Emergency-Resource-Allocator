@@ -5,8 +5,8 @@ import {
 } from "../services/api";
 
 function EmergencyForm({ onEmergencyCreated, onLoading }) {
-  const [latitude, setLatitude] = useState("19.0760");
-  const [longitude, setLongitude] = useState("72.8777");
+  const [latitude, setLatitude] = useState("19.0900");
+  const [longitude, setLongitude] = useState("72.8800");
   const [severity, setSeverity] = useState("high");
   const [facility, setFacility] = useState("ICU");
   const [error, setError] = useState("");
